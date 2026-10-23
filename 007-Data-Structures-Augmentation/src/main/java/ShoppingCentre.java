@@ -1,5 +1,5 @@
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ShoppingCentre {
     private Map<String, List<Product>> productsByProducer;
@@ -19,99 +19,59 @@ public class ShoppingCentre {
     }
 
     public String delete(String name, String producer) {
-        int size = this.productsByProducer.size();
-        int newSIze = 0;
+        List<Product> products = this.productsByProducer.get(producer);
+        int deleted = 0;
 
-        if (this.productsByProducer.containsKey(producer)) {
-            List<Product> removeByProducer =
-                    this.productsByProducer
-                            .remove(producer)
-                            .stream()
-                            .filter(product -> product.getName().equals(name))
-                            .collect(Collectors.toList());
+        if (products != null) {
+            int size = products.size();
+            products.removeIf(product -> product.getName().equals(name));
+            deleted = size - products.size();
 
-
-            newSIze = size - this.productsByProducer.size();
+            if (products.isEmpty()) {
+                this.productsByProducer.remove(producer);
+            }
         }
 
-        if (newSIze > 0) {
-            return newSIze + " products deleted" + System.lineSeparator();
-        } else {
-            return "No products found" + System.lineSeparator();
-        }
+        return getDeletedMessage(deleted);
     }
 
     public String delete(String producer) {
-
         List<Product> removeByProducer = this.productsByProducer.remove(producer);
-        int size = removeByProducer.size();
 
-        if (size > 0) {
-            return size + " products deleted" + System.lineSeparator();
-        }
-
-        return "No products found" + System.lineSeparator();
+        return getDeletedMessage(removeByProducer == null ? 0 : removeByProducer.size());
     }
 
     public String findProductsByName(String name) {
-        StringBuilder sb = new StringBuilder();
-
-        if (!this.productsByProducer.isEmpty()) {
-
-            for (List<Product> list : productsByProducer.values()) {
-
-                list.stream()
-                        .filter(product -> product.getName().equals(name))
-                        .sorted(Comparator.comparing(Product::getName)
-                                .thenComparing(Product::getProducer)
-                                .thenComparing(Product::getPrice))
-                        .forEach(product -> sb.append(product).append(System.lineSeparator()));
-            }
-        }
-
-        String toReturn = sb.toString();
-
-        return getStringToReturn(toReturn);
+        return getSortedProducts(this.productsByProducer.values()
+                .stream()
+                .flatMap(List::stream)
+                .filter(product -> product.getName().equals(name)));
     }
 
     public String findProductsByProducer(String producer) {
-        StringBuilder sb = new StringBuilder();
-
-        if (this.productsByProducer.containsKey(producer)) {
-            this.productsByProducer.get(producer)
-                    .stream()
-                    .sorted(Comparator.comparing(Product::getName)
-                            .thenComparing(Product::getProducer)
-                            .thenComparing(Product::getPrice))
-                    .forEach(product -> {
-                        sb.append(product.toString()).append(System.lineSeparator());
-                    });
-
-        }
-        String toReturn = sb.toString();
-
-        return getStringToReturn(toReturn);
+        return getSortedProducts(this.productsByProducer.getOrDefault(producer, Collections.emptyList()).stream());
     }
 
     public String findProductsByPriceRange(double priceFrom, double priceTo) {
+        return getSortedProducts(this.productsByProducer.values()
+                .stream()
+                .flatMap(List::stream)
+                .filter(p -> p.getPrice() >= priceFrom && p.getPrice() <= priceTo));
+    }
+
+    private String getSortedProducts(Stream<Product> products) {
         StringBuilder sb = new StringBuilder();
+        products.sorted().forEach(product -> sb.append(product).append(System.lineSeparator()));
 
-        if (!this.productsByProducer.isEmpty()) {
+        return getStringToReturn(sb.toString());
+    }
 
-            for (List<Product> list : productsByProducer.values()) {
-
-                list.stream()
-                        .filter(p -> p.getPrice() >= priceFrom && p.getPrice() <= priceTo)
-                        .sorted(Comparator.comparing(Product::getName)
-                                .thenComparing(Product::getProducer)
-                                .thenComparing(Product::getPrice))
-                        .forEach(product -> sb.append(product).append(System.lineSeparator()));
-            }
+    private String getDeletedMessage(int deleted) {
+        if (deleted > 0) {
+            return deleted + " products deleted" + System.lineSeparator();
         }
 
-        String toReturn = sb.toString();
-
-        return getStringToReturn(toReturn);
+        return "No products found" + System.lineSeparator();
     }
 
     private String getStringToReturn(String toReturn) {

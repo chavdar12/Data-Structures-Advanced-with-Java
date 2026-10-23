@@ -29,7 +29,7 @@ public class HashTable<K, V> implements Iterable<KeyValue<K, V>> {
     public void add(K key, V value) {
         this.checkForGrow();
 
-        int index = Math.abs(key.hashCode()) % this.hashtable.length;
+        int index = this.getIndex(key);
 
         if (this.hashtable[index] == null) {
             this.hashtable[index] = new LinkedList<>();
@@ -117,7 +117,7 @@ public class HashTable<K, V> implements Iterable<KeyValue<K, V>> {
     }
 
     public boolean containsKey(K key) {
-        int index = Math.abs(key.hashCode()) % this.hashtable.length;
+        int index = this.getIndex(key);
 
         if (this.hashtable[index] != null) {
 
@@ -196,6 +196,6 @@ public class HashTable<K, V> implements Iterable<KeyValue<K, V>> {
 
     private int getIndex(K key) {
 
-        return Math.abs(key.hashCode()) % this.hashtable.length;
+        return Math.floorMod(key.hashCode(), this.hashtable.length);
     }
 }

@@ -26,7 +26,7 @@ public class PersonCollectionImpl implements PersonCollection {
         this.people.add(person);
         this.peopleByEmails.putIfAbsent(email, person);
 
-        String nameAndTown = name + town;
+        String nameAndTown = getNameAndTown(name, town);
         this.peopleByNameAndTown.putIfAbsent(nameAndTown, new TreeSet<>(Person::compareTo));
         this.peopleByNameAndTown.get(nameAndTown).add(person);
 
@@ -53,7 +53,7 @@ public class PersonCollectionImpl implements PersonCollection {
 
         this.people.remove(person);
         this.peopleByDomains.get(getDomain(email)).remove(person);
-        this.peopleByNameAndTown.get(person.getName() + person.getTown()).remove(person);
+        this.peopleByNameAndTown.get(getNameAndTown(person.getName(), person.getTown())).remove(person);
 
         return true;
     }
@@ -71,7 +71,7 @@ public class PersonCollectionImpl implements PersonCollection {
 
     @Override
     public Iterable<Person> findAll(String name, String town) {
-        TreeSet<Person> people = this.peopleByNameAndTown.get(name + town);
+        TreeSet<Person> people = this.peopleByNameAndTown.get(getNameAndTown(name, town));
         return people != null ? people : new TreeSet<>();
     }
 
@@ -91,6 +91,11 @@ public class PersonCollectionImpl implements PersonCollection {
                         && person.getAge() <= endAge
                         && person.getTown().equals(town))
                 .collect(Collectors.toList());
+    }
+
+    // separator keeps ("Ab", "c") and ("A", "bc") from sharing a key
+    private String getNameAndTown(String name, String town) {
+        return name + '\0' + town;
     }
 
     private String getDomain(String email) {

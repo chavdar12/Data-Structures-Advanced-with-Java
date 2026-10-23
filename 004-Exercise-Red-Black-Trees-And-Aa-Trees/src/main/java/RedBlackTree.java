@@ -111,24 +111,16 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
             node.val = value;
         }
 
-        // rotations
-        if (this.isRed(node.right) && !this.isRed(node.left)) {
-            node = this.rotateLeft(node);
-        } else if (this.isRed(node.left) && this.isRed(node.left.left)) {
-            node = this.rotateRight(node);
-        } else if (this.isRed(node.left) && this.isRed(node.right)) {
-            flipColors(node);
-        }
-
-        node.size = this.size(node.left) + this.size(node.right) + 1;
-
-        return node;
+        return this.balance(node);
     }
 
-    // TODO: Create a test that breaks deleteMin;
     public void deleteMin() {
         if (this.root == null) {
             return;
+        }
+
+        if (!this.isRed(this.root.left) && !this.isRed(this.root.right)) {
+            this.root.color = RED;
         }
 
         this.root = this.deleteMin(this.root);
@@ -140,12 +132,12 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
 
     // delete the key-value pair with the minimum key rooted at h
     private Node deleteMin(Node node) {
-        if (this.isRed(node.right)) {
-            this.moveRedLeft(node);
+        if (node.left == null) {
+            return null;
         }
 
-        if (node.left == null) {
-            return node.right;
+        if (!this.isRed(node.left) && !this.isRed(node.left.left)) {
+            node = this.moveRedLeft(node);
         }
 
         node.left = this.deleteMin(node.left);
@@ -153,10 +145,13 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
         return balance(node);
     }
 
-    // TODO: Create a test that breaks deleteMax;
     public void deleteMax() {
         if (this.root == null) {
             return;
+        }
+
+        if (!this.isRed(this.root.left) && !this.isRed(this.root.right)) {
+            this.root.color = RED;
         }
 
         this.root = this.deleteMax(this.root);
@@ -169,11 +164,15 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
     // delete the key-value pair with the maximum key rooted at h
     private Node deleteMax(Node node) {
         if (this.isRed(node.left)) {
-            this.moveRedRight(node);
+            node = this.rotateRight(node);
         }
 
         if (node.right == null) {
-            return node.left;
+            return null;
+        }
+
+        if (!this.isRed(node.right) && !this.isRed(node.right.left)) {
+            node = this.moveRedRight(node);
         }
 
         node.right = this.deleteMax(node.right);
@@ -181,13 +180,50 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
         return balance(node);
     }
 
-    // TODO: Implement delete;
     public void delete(Key key) {
+        if (!this.contains(key)) {
+            return;
+        }
+
+        if (!this.isRed(this.root.left) && !this.isRed(this.root.right)) {
+            this.root.color = RED;
+        }
+
+        this.root = this.delete(this.root, key);
+
+        if (this.root != null) {
+            this.root.color = BLACK;
+        }
     }
 
     // delete the key-value pair with the given key rooted at h
     private Node delete(Node h, Key key) {
-        return null;
+        if (key.compareTo(h.key) < 0) {
+            if (!this.isRed(h.left) && !this.isRed(h.left.left)) {
+                h = this.moveRedLeft(h);
+            }
+            h.left = this.delete(h.left, key);
+        } else {
+            if (this.isRed(h.left)) {
+                h = this.rotateRight(h);
+            }
+            if (key.compareTo(h.key) == 0 && h.right == null) {
+                return null;
+            }
+            if (!this.isRed(h.right) && !this.isRed(h.right.left)) {
+                h = this.moveRedRight(h);
+            }
+            if (key.compareTo(h.key) == 0) {
+                Node min = this.min(h.right);
+                h.key = min.key;
+                h.val = min.val;
+                h.right = this.deleteMin(h.right);
+            } else {
+                h.right = this.delete(h.right, key);
+            }
+        }
+
+        return this.balance(h);
     }
 
     private Node rotateRight(Node node) {
@@ -222,34 +258,36 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
 
     // Assuming that h is red and both h.left and h.left.left
     // are black, make h.left or one of its children red.
-    private void moveRedLeft(Node node) {
+    private Node moveRedLeft(Node node) {
         flipColors(node);
-        if (this.isRed(node)) {
-            node.left = this.rotateLeft(node.left);
+        if (this.isRed(node.right.left)) {
+            node.right = this.rotateRight(node.right);
+            node = this.rotateLeft(node);
             flipColors(node);
-            node.size = this.size(node.left) + this.size(node.right) + 1;
         }
+        return node;
     }
 
     // Assuming that h is red and both h.right and h.right.left
     // are black, make h.right or one of its children red.
-    private void moveRedRight(Node node) {
-        if (this.isRed(node)) {
-            node.right = this.rotateRight(node.right);
-            node = this.rotateLeft(node);
+    private Node moveRedRight(Node node) {
+        flipColors(node);
+        if (this.isRed(node.left.left)) {
+            node = this.rotateRight(node);
             flipColors(node);
-            node.size = this.size(node.left) + this.size(node.right) + 1;
         }
-
+        return node;
     }
 
     // restore red-black tree invariant
     private Node balance(Node node) {
-        if (this.isRed(node.right)) {
+        if (this.isRed(node.right) && !this.isRed(node.left)) {
             node = this.rotateLeft(node);
-        } else if (this.isRed(node.left) && this.isRed(node.left.left)) {
+        }
+        if (this.isRed(node.left) && this.isRed(node.left.left)) {
             node = this.rotateRight(node);
-        } else if (this.isRed(node.left) && this.isRed(node.right)) {
+        }
+        if (this.isRed(node.left) && this.isRed(node.right)) {
             flipColors(node);
         }
 
@@ -270,45 +308,32 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
     }
 
     public Key min() {
-        if (this.root == null) {
-            return null;
-        }
-
-        Node current = this.root;
-
-        while (current.left != null) {
-            current = current.left;
-        }
-
-        return current.key;
+        return this.root == null ? null : this.min(this.root).key;
     }
 
     // the smallest key in subtree rooted at x; null if no such key
     private Node min(Node x) {
-        return null;
+        while (x != null && x.left != null) {
+            x = x.left;
+        }
+        return x;
     }
 
     public Key max() {
-        if (this.root == null) {
-            return null;
-        }
-
-        Node current = this.root;
-
-        while (current.right != null) {
-            current = current.right;
-        }
-
-        return current.key;
+        return this.root == null ? null : this.max(this.root).key;
     }
 
     // the largest key in the subtree rooted at x; null if no such key
     private Node max(Node x) {
-        return null;
+        while (x != null && x.right != null) {
+            x = x.right;
+        }
+        return x;
     }
 
     public Key floor(Key key) {
-        return this.floor(this.root, key).key;
+        Node node = this.floor(this.root, key);
+        return node == null ? null : node.key;
     }
 
     // the largest key in the subtree rooted at x less than or equal to the given key
@@ -322,14 +347,15 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
         } else if (key.compareTo(node.key) == 0) {
             return node;
         } else {
-            Node result = max(node.right);
+            Node result = this.floor(node.right, key);
 
             return result == null ? node : result;
         }
     }
 
     public Key ceiling(Key key) {
-        return this.ceiling(this.root, key).key;
+        Node node = this.ceiling(this.root, key);
+        return node == null ? null : node.key;
     }
 
     // the smallest key in the subtree rooted at x greater than or equal to the given key
@@ -343,7 +369,7 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
         } else if (key.compareTo(node.key) == 0) {
             return node;
         } else {
-            Node result = min(node.left);
+            Node result = this.ceiling(node.left, key);
 
             return result == null ? node : result;
         }
@@ -353,14 +379,11 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
         return this.select(this.root, rank);
     }
 
-    // Return key in BST rooted at x of given rank.
-    // Precondition: rank is in legal range.
+    // Return key in BST rooted at x of given rank; null if rank is out of range.
     private Key select(Node node, int rank) {
         if (node == null) {
             return null;
         }
-
-        // TODO: Check if contains!!!
 
         if (this.size(node.left) < rank) {
             return this.select(node.right, rank - this.size(node.left) - 1);
@@ -381,8 +404,6 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
             return 0;
         }
 
-        // TODO: Check if contains key
-
         if (key.compareTo(node.key) < 0) {
             return this.rank(node.left, key);
         } else if (key.compareTo(node.key) > 0) {
@@ -394,7 +415,7 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
 
     public Iterable<Key> keys() {
         if (this.root == null) {
-            return null;
+            return new ArrayDeque<>();
         }
 
         return this.keys(this.min(), this.max());
@@ -427,7 +448,11 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> {
     }
 
     public int size(Key low, Key high) {
-        return 0;
+        if (low.compareTo(high) > 0) {
+            return 0;
+        }
+
+        return this.rank(high) - this.rank(low) + (this.contains(high) ? 1 : 0);
     }
 
     // USELESS METHODS :D

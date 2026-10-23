@@ -14,6 +14,10 @@ public class RoyalArena implements IArena {
 
     @Override
     public void add(Battlecard card) {
+        if (this.contains(card)) {
+            this.removeById(card.getId());
+        }
+
         this.battleCardsById.put(card.getId(), card);
 
         if (!battleCardsByName.containsKey(card.getName())) {
@@ -134,7 +138,7 @@ public class RoyalArena implements IArena {
 
     @Override
     public Iterable<Battlecard> getByNameOrderedBySwagDescending(String name) {
-        List<Battlecard> result = this.battleCardsByName.get(name)
+        List<Battlecard> result = this.battleCardsByName.getOrDefault(name, Collections.emptyList())
                 .stream()
                 .sorted((card1, card2) -> {
                     int compareResult = Double.compare(card2.getSwag(), card1.getSwag());
@@ -192,7 +196,7 @@ public class RoyalArena implements IArena {
 
     @Override
     public Iterable<Battlecard> findFirstLeastSwag(int n) {
-        if (n >= this.count()) {
+        if (n > this.count()) {
             throw new UnsupportedOperationException();
         }
 

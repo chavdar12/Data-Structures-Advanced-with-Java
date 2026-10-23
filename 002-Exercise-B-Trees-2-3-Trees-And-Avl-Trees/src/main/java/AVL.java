@@ -26,15 +26,49 @@ public class AVL<T extends Comparable<T>> {
     }
 
     public void delete(T item) {
-        throw new UnsupportedOperationException();
+        this.root = this.delete(this.root, item);
     }
 
     public void deleteMin() {
-        throw new UnsupportedOperationException();
+        Node<T> min = this.getMin(this.root);
+        if (min != null) {
+            this.delete(min.value);
+        }
     }
 
     public void deleteMax() {
-        throw new UnsupportedOperationException();
+        Node<T> max = this.root;
+        while (max != null && max.right != null) {
+            max = max.right;
+        }
+        if (max != null) {
+            this.delete(max.value);
+        }
+    }
+
+    private Node<T> delete(Node<T> node, T item) {
+        if (node == null) {
+            return null;
+        }
+
+        int cmp = item.compareTo(node.value);
+        if (cmp < 0) {
+            node.left = this.delete(node.left, item);
+        } else if (cmp > 0) {
+            node.right = this.delete(node.right, item);
+        } else if (node.left == null) {
+            return node.right;
+        } else if (node.right == null) {
+            return node.left;
+        } else {
+            Node<T> successor = this.getMin(node.right);
+            node.value = successor.value;
+            node.right = this.delete(node.right, successor.value);
+        }
+
+        this.updateHeight(node);
+
+        return balance(node);
     }
 
     private void eachInOrder(Node<T> node, Consumer<T> action) {

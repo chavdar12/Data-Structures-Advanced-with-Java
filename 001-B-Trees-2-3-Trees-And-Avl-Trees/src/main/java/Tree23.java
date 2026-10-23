@@ -67,9 +67,9 @@ public class Tree23 {
                     if (insertionNode.parent != null) {
                         insertionNode = insertionNode.parent;
 
-                        int insertionIndex = insertionNode.getInsertionIndex(key);
+                        int insertionIndex = insertionNode.getInsertionIndex(median);
 
-                        insertionNode.keys.add(insertionIndex, key);
+                        insertionNode.keys.add(insertionIndex, median);
                         insertionNode.subNodes.add(insertionIndex, leftPart);
                         insertionNode.subNodes.set(insertionIndex + 1, rightPart);
 

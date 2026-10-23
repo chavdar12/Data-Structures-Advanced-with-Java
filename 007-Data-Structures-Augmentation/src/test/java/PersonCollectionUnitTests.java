@@ -8,7 +8,7 @@ import java.util.List;
 
 public class PersonCollectionUnitTests {
 
-    private PersonCollection people;
+    protected PersonCollection people;
 
     @Before
     public void setUp() {

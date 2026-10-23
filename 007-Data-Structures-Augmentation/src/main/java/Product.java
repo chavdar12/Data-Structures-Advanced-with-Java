@@ -1,3 +1,4 @@
+import java.util.Locale;
 import java.util.Objects;
 
 public class Product implements Comparable<Product> {
@@ -61,5 +62,10 @@ public class Product implements Comparable<Product> {
     @Override
     public int hashCode() {
         return Objects.hash(name, price, producer);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(Locale.ROOT, "{%s;%s;%.2f}", this.name, this.producer, this.price);
     }
 }

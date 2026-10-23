@@ -65,7 +65,7 @@ public class PersonCollectionSlowImpl implements PersonCollection {
 
         return people.values()
                 .stream()
-                .filter(person -> person.getAge() >= startAge || person.getAge() <= endAge)
+                .filter(person -> person.getAge() >= startAge && person.getAge() <= endAge)
                 .sorted(Comparator.comparing(Person::getAge).thenComparing(Person::getEmail))
                 .collect(Collectors.toList());
     }
@@ -74,7 +74,7 @@ public class PersonCollectionSlowImpl implements PersonCollection {
     public Iterable<Person> findAll(int startAge, int endAge, String town) {
         return people.values()
                 .stream()
-                .filter(person -> (person.getAge() >= startAge || person.getAge() <= endAge) && person.getTown().equals(town))
+                .filter(person -> (person.getAge() >= startAge && person.getAge() <= endAge) && person.getTown().equals(town))
                 .sorted(Comparator.comparing(Person::getAge).thenComparing(Person::getEmail))
                 .collect(Collectors.toList());
     }
