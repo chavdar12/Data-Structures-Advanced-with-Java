@@ -8,4 +8,6 @@ include(
     "005-Hash-Tables-Sets-And-Maps",
     "006-Exercise-Hash-Tables-Sets-And-Maps",
     "007-Data-Structures-Augmentation",
+    "008-Exam-Preparation-RePlayer-And-Vehicle-Repository",
+    "009-Exam-Preparation-Doodle-Search-And-Movie-Database",
 )
