@@ -10,7 +10,7 @@ subprojects {
     }
 
     tasks.withType<JavaCompile> {
-        options.release = 17
+        options.release = 25
     }
 
     tasks.withType<Test> {
